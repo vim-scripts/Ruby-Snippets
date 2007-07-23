@@ -1,0 +1,12 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1966
+
+This script have some abbreviations to use in insert mode while writing Ruby code. The goal is to speed up (more!) code writing.
+There are "triggers" when typing def, for, begin, inject, class, module, collect, detect, each, find, find_all, map, reject, select, attr_reader, attr_writer, attr_accessor. For example, when typing "class" you get
+
+class ClassName
+end
+
+and the cursor is positioned on "ClassName", where you can use cw to replace it to the name you want on the class.
+
+There's a little video on http://eustaquiorangel.com/blog/show/438 about the script. Non-portuguese readers, please just click on play.
+
