@@ -1,0 +1,111 @@
+*rubysnippets.txt*	Ruby snippets to accelerate code writing
+
+For instructions on installing this file, type
+	:help add-local-help
+inside Vim.
+
+Author: Eustáquio 'TaQ' Rangel
+
+===================================================================================
+
+The goal of this script is accelerate code writing with the Ruby 
+language. It uses some insert mode abbreviations to insert some structures
+and keywords, trying to keeping some consistency with the Ruby standards,
+like one liners presuming you're using some method that can filter or check 
+a collection with one line of code. Of course the standards are about keeping 
+one line of code inside { and }, not the fact that all the filter or checking
+methods take just one line. ;-)
+
+1. Installation                             *rubysnippets-install*
+
+Just put the rubysnippets.vim file inside your $HOME/.vim/scripts directory and
+source it while reading some file that can contain Ruby code, inserting something
+like this on your $HOME/.vimrc file:
+
+autocmd BufNewFile,BufRead *.rb,*.rhtml source ~/.vim/scripts/rubysnippets.vim
+
+2. Features
+
+2.1 - Defining methods                      *rubysnippets-methods*
+
+Typing def you'll get:
+
+def method_name
+end
+
+and the cursor will be positioned on "method_name" on Normal Mode, when you can
+use "cw" to replace the string with the method name you want.
+
+2.2 - Exceptions                            *rubysnippets-exceptions*
+
+Typing begin you'll get:
+
+begin
+rescue Exception => e
+end
+
+2.3 - Inject                                *rubysnippets-inject*
+
+Typing inject (of course after some object) you'll get:
+
+object.inject do |memo,obj|
+end
+
+2.4 - Each                                  *rubysnippets-each*
+
+Typing each (of course after some object) you'll get:
+
+object.each do |item|
+end
+
+2.5 - Classes and modules                   *rubysnippets-classes* *rubysnippets-modules*
+
+There's similar behaviours for classes and modules, when typing class or module:
+
+class ClassName
+end
+
+module ModuleName
+end
+
+2.6 - Attribute accessors                   *rubysnippets-attributes*
+
+Typing	Result
+------	------
+atr		attr_reader
+atw		attr_writer
+atc		attr_accessor
+
+2.7 - For block                             *rubysnippets-for*
+
+Here we have a snippet to work with for.
+It works on empty lines, or lines with one or two strings, 
+where it insert a default 'for' structure and change its 
+strings checking how many strings are on the current line.
+It works like this:
+
+current line		result
+------------		------
+<empty>			for item in collection
+ 					end
+@people			for item in @people
+ 					end
+person @people	for person in @people
+ 					end												
+
+It works on Insert Mode, when you type 'for' or <C-F>, and on
+Normal Mode when you type <C-F>.
+
+2.8 - Hashes                                *rubysnippets-hash*
+
+Here we have a function to get the contents of the line,
+using <C-F> on both Normal and Insert modes, tokenize it 
+using spaces, and if the result is a even number collection, 
+create a hash. Like this:
+
+1 :one 2 :two 3 :three 4 :four 
+
+will become
+
+{1=>:one,2=>:two,3=>:three,4=>:four}
+
