@@ -1,7 +1,7 @@
 "
 " Ruby snippets
-" Last change: July 23 2007
-" Version> 0.0.3
+" Last change: July 25 2007
+" Version> 0.0.4
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
 " Thanks to: Andy Wokula for help
@@ -77,23 +77,14 @@ map  <buffer> <C-F> :call <SID>RubySnippetsFor()<cr>o
 imap <buffer> <C-F> <ESC>:call <SID>RubySnippetsFor()<cr>o
 
 "
-" Here we have a function to get the contents of the line,
-" using <C-F> on both Normal and Insert modes, tokenize it 
-" using spaces, and if the result is a even number collection, 
-" create a hash. Like this:
+" Create a Ruby representation with a list of even string parameters.
+" If it's an odd number, do nothing.
 "
-" 1 :one 2 :two 3 :three 4 :four 
-"
-" will become
-"
-" {1=>:one,2=>:two,3=>:three,4=>:four}
-"
-function! s:RubySnippetsHash()
-	let line		= getline(".")
-	let tokens	= split(line)
+function! s:RubySnippetsMakeHash(line)
+	let tokens	= split(a:line)
 	let leng		= len(tokens)
 	if leng==0 || leng%2!=0
-		return
+		return ""
 	endif
 	let qtde = leng/2
 	let lnum = 0
@@ -104,7 +95,40 @@ function! s:RubySnippetsHash()
 		let lnum = lnum+1
 		let lpos = lpos+2
 	endwhile
-	call setline(line("."),"{".join(list,",")."}")
+	return "{".join(list,",")."}"
 endfunction
-map  <buffer> <C-H> <ESC>:call <SID>RubySnippetsHash()<cr>
+
+"
+" The hash is created using <C-F> on Insert Mode, where it will search
+" for the positions of { and } and convert all the EVEN strings inside 
+" the FIRST MATCHED values on a hash.  
+" Like this:
+"
+" {1 :one 2 :two 3 :three 4 :four}
+"
+" will become
+"
+" {1=>:one,2=>:two,3=>:three,4=>:four}
+"
+" The { and } are mandatory, they identify a hash needing to be formatted.
+" If it is an odd number, do nothing.
+"
+function! s:RubySnippetsHash()
+	let line = getline(".")
+	let ini  = match(line,'{[a-zA-Z0-9: ''""]\+}') 
+	let end	= stridx(line,"}",ini+1)
+	let pre  = strpart(line,0,ini)
+	let pos  = strpart(line,end+1)
+	let subs = strpart(line,ini+1,end-ini-1)
+	let rst  = s:RubySnippetsMakeHash(subs)
+	if strlen(rst)<1
+		return
+	endif
+	call setline(line("."),pre.rst.pos)
+	let posi		= getpos(".") 
+	let endp		= stridx(getline("."),"}",ini+1)
+	let posi[2]	= endp+1
+	call setpos(".",posi)
+endfunction
 imap <buffer> <C-H> <ESC>:call <SID>RubySnippetsHash()<cr>
+map  <buffer> <C-H> <ESC>:call <SID>RubySnippetsHash()<cr>
