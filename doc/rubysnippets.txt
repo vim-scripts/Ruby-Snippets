@@ -112,3 +112,16 @@ will become
 The { and } are mandatory, they identify a hash needing to be formatted.
 Please note that It will find the FIRST match between { and } and insert 
 the "=>" chars for key and values and commas as separators of the pairs.
+
+3. Configuration                            *rubysnippets-configuration*
+
+For some structures like def, class and module, automatic names are 
+inserted and the cursor is positioned over them. If you don't like
+this behaviour, you can define a variable to skip this operation,
+like this:
+
+let g:rubysnippets_skip_names=1
+
+You can put this command in your $HOME/.vimrc file. If the variable
+is defined, the Insert Mode is kept and you can continue to type your
+code normally, inserting the method, class or module name.

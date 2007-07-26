@@ -1,21 +1,29 @@
 "
 " Ruby snippets
 " Last change: July 26 2007
-" Version> 0.0.5
+" Version> 0.0.6
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
-" Thanks to: Andy Wokula for help
+" Thanks to: Andy Wokula and Antonio Terceiro for help and patches.
 "
 if exists("b:rubysnippets_ignore")
 	finish
 endif
 let b:rubysnippets_ignore = 1
 
+"
+" Eats up whitespace after an abbreaviation. Adapted from an example in vim
+" documentation (:h map)
+"
+function! s:RubySnippetsEatSpace()
+   let c = nr2char(getchar(0))
+   return (c =~ '\s') ? '' : c
+endfunction
+
 " Simple abbreviations
-iab <buffer> <silent> def def method_name<CR>end<Esc><Up><S-Right><Left>
-iab <buffer> <silent> begin begin<CR>rescue Exception => e<CR>end<Esc><Up>O
-iab <buffer> <silent> inject inject do \|memo,obj\|<CR>end<Esc>O
-iab <buffer> <silent> each each do \|item\|<CR>end<Esc>O
+iab <buffer> <silent> begin begin<CR>rescue Exception => e<CR>end<Up><Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
+iab <buffer> <silent> inject inject do \|memo,obj\|<CR>end<Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
+iab <buffer> <silent> each each do \|item\|<CR>end<Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
 
 " One liners
 let s:blocks = ["collect","detect","find","find_all","map","reject","select","partition"]
@@ -89,10 +97,12 @@ map  <buffer> <C-F> :call <SID>RubySnippetsFor(0)<cr>
 imap <buffer> <C-F> <ESC>:call <SID>RubySnippetsFor(0)<cr>
 
 " 
-" Used to create classes and modules structures, but just
+" Used to create classes, modules and methods structures, but just
 " when there is nothing more on the line.
+" If there is a variable called g:rubysnippets_skip_names defined,
+" it skip the structure default names automatically inserted.
 "
-function! s:RubySnippetsCM(expr)
+function! s:RubySnippetsCM(expr,name)
 	let line		= getline(".")
 	let pos		= getpos(".")
 	let indent  = repeat(" ",indent("."))
@@ -101,18 +111,27 @@ function! s:RubySnippetsCM(expr)
 		call s:RubySnippetsKeepLine(line,a:expr)
 		return
 	endif
-	let name		= toupper(a:expr[0]).strpart(a:expr,1)."Name"
+	let name		= a:name 
+	let skip		= exists("g:rubysnippets_skip_names")
+	if skip 
+		let name = ""
+	endif
 	let newl		= indent.a:expr." ".name
 	call setline(line("."),newl)
 	call append(line("."),indent."end")
-	let pos[2]	= stridx(newl,name)
-	call setpos(".",pos)
+	if skip
+		call feedkeys("$a")
+	else
+		let pos[2]	= stridx(newl,name)
+		call setpos(".",pos)
+	endif
 endfunction
-iab <buffer> <silent> class  <esc>:call <SID>RubySnippetsCM("class")<cr>
-iab <buffer> <silent> module <esc>:call <SID>RubySnippetsCM("module")<cr>
+iab <buffer> <silent> class  <esc>:call <SID>RubySnippetsCM("class","ClassName")<cr>
+iab <buffer> <silent> module <esc>:call <SID>RubySnippetsCM("module","ModuleName")<cr>
+iab <buffer> <silent> def    <esc>:call <SID>RubySnippetsCM("def","method_name")<cr>
 
 "
-" Create a Ruby representation with a list of even string parameters.
+" Create a Ruby hash representation with a list of even string parameters.
 " If it's an odd number, do nothing.
 "
 function! s:RubySnippetsMakeHash(line)
