@@ -93,13 +93,13 @@ current line		result
 person @people	for person in @people
  					end												
 
-It works on Insert Mode, when you type 'for' or <C-F>, and on
-Normal Mode when you type <C-F>.
+It works on Insert Mode when you type 'for' as the first string on
+the line, and <C-F> on Insert and Normal Modes.
 
 2.8 - Hashes                                *rubysnippets-hash*
 
 Here we have a function to get the contents of the line,
-using <C-F> on both Normal and Insert modes, tokenize it 
+using <C-H> on both Normal and Insert modes, tokenize it 
 using spaces, and if the result is a even number collection, 
 create a hash. Like this:
 
