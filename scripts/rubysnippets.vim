@@ -1,7 +1,7 @@
 "
 " Ruby snippets
-" Last change: July 26 2007
-" Version> 0.0.6
+" Last change: July 27 2007
+" Version> 0.0.7
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
 " Thanks to: Andy Wokula and Antonio Terceiro for help and patches.
@@ -52,6 +52,19 @@ function! s:RubySnippetsKeepLine(line,expr)
 	call feedkeys((strlen(a:expr)-1)."la ")
 endfunction
 
+"
+" Create a indentation string with tabs, based on the
+" current line indentation. It checks if the expandtab
+" option is set, and if so insert space characters, if
+" not, find how many tabs are inserted based on the value
+" of the tabstop option.
+"
+function! s:RubySnippetsCreateIndentation()
+	let char = &expandtab==1 ? " " : "\t"
+	let qty	= indent(".") / (&expandtab==1 ? 1 : &tabstop)
+	return repeat(char,qty)
+endfunction
+
 " RubySnippetsFor()
 "
 " Here we have a snippet to work with for.
@@ -76,7 +89,7 @@ function! s:RubySnippetsFor(insert)
 	let line		= getline(".")
 	let token	= split(line)
 	let listc	= ["for","item","in","collection"]
-	let indent  = repeat(" ",indent("."))
+	let indent  = s:RubySnippetsCreateIndentation() 
 	if len(token)>0 && token[0]!="for" && a:insert==1
 		call s:RubySnippetsKeepLine(line,"for")
 		return
@@ -105,7 +118,7 @@ imap <buffer> <C-F> <ESC>:call <SID>RubySnippetsFor(0)<cr>
 function! s:RubySnippetsCM(expr,name)
 	let line		= getline(".")
 	let pos		= getpos(".")
-	let indent  = repeat(" ",indent("."))
+	let indent  = s:RubySnippetsCreateIndentation() 
 	let tokens	= split(line)
 	if len(tokens)>0 && tokens[0]!="class"
 		call s:RubySnippetsKeepLine(line,a:expr)
