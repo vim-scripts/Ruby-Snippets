@@ -113,6 +113,15 @@ The { and } are mandatory, they identify a hash needing to be formatted.
 Please note that It will find the FIRST match between { and } and insert 
 the "=>" chars for key and values and commas as separators of the pairs.
 
+2.9 - Signs
+
+You can define signs (visual marks on the file) using "is" (Insert Sign)
+and remove the sign on the current line with "rs", both on Normal Mode.
+If using vim on a console, text-based mode, a ">>" string will be used
+for the signs. If using GUI, a small ruby icon will be used. The icon
+file is searched on the "pixmaps" directory under the default vim
+configuration directory.
+
 3. Configuration                            *rubysnippets-configuration*
 
 For some structures like def, class and module, automatic names are 

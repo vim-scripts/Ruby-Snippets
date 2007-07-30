@@ -1,7 +1,7 @@
 "
 " Ruby snippets
-" Last change: July 27 2007
-" Version> 0.0.7
+" Last change: July 30 2007
+" Version> 0.0.8
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
 " Thanks to: Andy Wokula and Antonio Terceiro for help and patches.
@@ -10,6 +10,28 @@ if exists("b:rubysnippets_ignore")
 	finish
 endif
 let b:rubysnippets_ignore = 1
+let b:rubysigncount = 1
+
+"
+"	Insert a sign on the current file. The sign can be text (>>) if you're
+"	using vim on a console'or a little ruby icon if you're using GUI.
+"	'
+function! s:RubySnippetsInsertSign()
+	exe ":sign place ".b:rubysigncount." line=".line(".")." name=rubysign file=".expand("%:p")
+	let b:rubysigncount += 1
+endfunction
+
+" just enable the feature if vim was compiled with signs support
+if has("signs")
+	let icon_image	= "ruby.xpm"
+	let icon_path	= split(&rtp,",")[0]."/pixmaps/"
+	if has("win32")
+		let icon_image="ruby.bmp"
+	endif
+	exe ":sign define rubysign text=>> linehl=Warning texthl=Error icon=".icon_path.icon_image
+	map <buffer> is :call <SID>RubySnippetsInsertSign()<CR> 
+	map <buffer> rs :sign unplace<CR>
+endif
 
 "
 " Eats up whitespace after an abbreaviation. Adapted from an example in vim
