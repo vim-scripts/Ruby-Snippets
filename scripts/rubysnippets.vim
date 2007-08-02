@@ -1,7 +1,7 @@
 "
 " Ruby snippets
-" Last change: July 30 2007
-" Version> 0.0.8
+" Last change: August 2 2007
+" Version> 0.0.9
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
 " Thanks to: Andy Wokula and Antonio Terceiro for help and patches.
@@ -9,8 +9,22 @@
 if exists("b:rubysnippets_ignore")
 	finish
 endif
-let b:rubysnippets_ignore = 1
-let b:rubysigncount = 1
+let b:rubysnippets_ignore	= 1
+let b:rubysigncount			= 1
+
+" 
+" Create a dictionary for some options
+"
+let b:rubysnippets_options	= {}
+if exists("g:rubysnippets_skip_names")
+	let b:rubysnippets_options["class"]		= ["","$a "]
+	let b:rubysnippets_options["module"]	= ["","$a "]
+	let b:rubysnippets_options["def"]		= ["","$a "]
+else
+	let b:rubysnippets_options["class"]		= [" ClassName","w"]
+	let b:rubysnippets_options["module"]	= [" ModuleName","w"]
+	let b:rubysnippets_options["def"]		= [" method_name","w"]
+endif
 
 "
 "	Insert a sign on the current file. The sign can be text (>>) if you're
@@ -33,30 +47,7 @@ if has("signs")
 	map <buffer> rs :sign unplace<CR>
 endif
 
-"
-" Eats up whitespace after an abbreaviation. Adapted from an example in vim
-" documentation (:h map)
-"
-function! s:RubySnippetsEatSpace()
-   let c = nr2char(getchar(0))
-   return (c =~ '\s') ? '' : c
-endfunction
-
 " Simple abbreviations
-iab <buffer> <silent> begin begin<CR>rescue Exception => e<CR>end<Up><Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
-iab <buffer> <silent> inject inject do \|memo,obj\|<CR>end<Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
-iab <buffer> <silent> each each do \|item\|<CR>end<Up><End><CR><C-R>=<SID>RubySnippetsEatSpace()<CR>
-
-" One liners
-let s:blocks = ["collect","detect","find","find_all","map","reject","select","partition"]
-for s:item in s:blocks
-	let s:hamt = hasmapto("}","i") > 0
-	let s:endc = s:hamt ? "" : " }"
-	let s:ins  = s:hamt ? "" : "<Esc><Left>i"
-	let s:expr = "iab <buffer> <silent> ".s:item." ".s:item." {\\|item\\|".s:endc.s:ins
-	execute s:expr
-endfor
-
 iab <buffer> <silent> atr attr_reader
 iab <buffer> <silent> atw attr_writer
 iab <buffer> <silent> atc attr_accessor
@@ -71,7 +62,7 @@ function! s:RubySnippetsKeepLine(line,expr)
 	let pre	= strpart(a:line,0,pos[2])
 	let aft  = strpart(a:line,pos[2])
 	call setline(line("."),pre.a:expr.aft)
-	call feedkeys((strlen(a:expr)-1)."la ")
+	call feedkeys((strlen(a:expr)-1)."la ","m")
 endfunction
 
 "
@@ -131,39 +122,75 @@ iab  <buffer> for <esc>:call <SID>RubySnippetsFor(1)<cr>
 map  <buffer> <C-F> :call <SID>RubySnippetsFor(0)<cr>
 imap <buffer> <C-F> <ESC>:call <SID>RubySnippetsFor(0)<cr>
 
-" 
-" Used to create classes, modules and methods structures, but just
-" when there is nothing more on the line.
-" If there is a variable called g:rubysnippets_skip_names defined,
-" it skip the structure default names automatically inserted.
 "
-function! s:RubySnippetsCM(expr,name)
+" Used to create 'one-liners' and blocks, but just when 
+" the method have a dot before its name. 
+"
+function! s:RubySnippetsOneLinersAndBlocks(expr,aft,append,match,keys)
 	let line		= getline(".")
 	let pos		= getpos(".")
-	let indent  = s:RubySnippetsCreateIndentation() 
-	let tokens	= split(line)
-	if len(tokens)>0 && tokens[0]!="class"
-		call s:RubySnippetsKeepLine(line,a:expr)
-		return
-	endif
-	let name		= a:name 
-	let skip		= exists("g:rubysnippets_skip_names")
-	if skip 
-		let name = ""
-	endif
-	let newl		= indent.a:expr." ".name
-	call setline(line("."),newl)
-	call append(line("."),indent."end")
-	if skip
-		call feedkeys("$a")
+	let pre		= strpart(line,0,pos[2]) 
+	let subs		= strpart(line,pos[2]-1,1)
+
+	" let's check for a match to fire the transformation
+	if len(a:match)>0
+		if subs!=a:match
+			call s:RubySnippetsKeepLine(line,a:expr)
+			return
+		end
 	else
-		let pos[2]	= stridx(newl,name)
+		" if the match is an empty string, we check for nothing more there
+		let tokens = split(line)
+		if len(tokens)>0 && tokens[0]!=a:expr
+			call s:RubySnippetsKeepLine(line,a:expr)
+			return
+		endif
+	end	
+
+	" change the current line
+	call setline(".",pre.a:expr.a:aft)
+
+	" check for the append list size
+	let size = len(a:append)
+
+	" if don't need to append something, change the cursor position and go to
+	" insert mode'
+	if size<1
+		let pos[2] = pos[2]+len(a:expr)+len(a:aft)-1
 		call setpos(".",pos)
+		call feedkeys("i","n")
+	else
+		let indent = s:RubySnippetsCreateIndentation() 
+		let cnt    = 0
+		while cnt < size
+			let a:append[cnt] = indent.a:append[cnt]
+			let cnt = cnt + 1
+		endwhile	
+		call append(line("."),a:append)
+	endif		
+	if len(a:keys)>0
+		call feedkeys(a:keys)
 	endif
 endfunction
-iab <buffer> <silent> class  <esc>:call <SID>RubySnippetsCM("class","ClassName")<cr>
-iab <buffer> <silent> module <esc>:call <SID>RubySnippetsCM("module","ModuleName")<cr>
-iab <buffer> <silent> def    <esc>:call <SID>RubySnippetsCM("def","method_name")<cr>
+
+" blocks
+iab <buffer> <silent> each					<esc>:call <SID>RubySnippetsOneLinersAndBlocks("each"					," do \|item\|"		,["end"],".","o")<cr>
+iab <buffer> <silent> each_with_index	<esc>:call <SID>RubySnippetsOneLinersAndBlocks("each_with_index"	," do \|item,index\|",["end"],".","o")<cr>
+iab <buffer> <silent> inject				<esc>:call <SID>RubySnippetsOneLinersAndBlocks("inject"				," do \|memo,obj\|"	,["end"],".","o")<cr>
+iab <buffer> <silent> begin				<esc>:call <SID>RubySnippetsOneLinersAndBlocks("begin"				,"",["rescue Exception => e","end"],"","o")<cr>
+iab <buffer> <silent> class				<esc>:call <SID>RubySnippetsOneLinersAndBlocks("class"				,b:rubysnippets_options["class"][0],["end"],"",b:rubysnippets_options["class"][1])<cr>
+iab <buffer> <silent> module				<esc>:call <SID>RubySnippetsOneLinersAndBlocks("module"				,b:rubysnippets_options["module"][0],["end"],"",b:rubysnippets_options["module"][1])<cr>
+iab <buffer> <silent> def					<esc>:call <SID>RubySnippetsOneLinersAndBlocks("def"					,b:rubysnippets_options["def"][0],["end"],"",b:rubysnippets_options["def"][1])<cr>
+
+" one-liners
+iab <buffer> <silent> collect		<esc>:call <SID>RubySnippetsOneLinersAndBlocks("collect"	," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> detect		<esc>:call <SID>RubySnippetsOneLinersAndBlocks("detect"	," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> find			<esc>:call <SID>RubySnippetsOneLinersAndBlocks("find"		," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> find_all	<esc>:call <SID>RubySnippetsOneLinersAndBlocks("find_all"," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> map			<esc>:call <SID>RubySnippetsOneLinersAndBlocks("map"		," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> reject		<esc>:call <SID>RubySnippetsOneLinersAndBlocks("reject"	," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> select		<esc>:call <SID>RubySnippetsOneLinersAndBlocks("select"	," {\|item\| }",[],".","")<cr>
+iab <buffer> <silent> partition	<esc>:call <SID>RubySnippetsOneLinersAndBlocks("partition"," {\|item\| }",[],".","")<cr>
 
 "
 " Create a Ruby hash representation with a list of even string parameters.
