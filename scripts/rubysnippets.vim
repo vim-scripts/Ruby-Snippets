@@ -1,7 +1,7 @@
 "
 " Ruby snippets
-" Last change: August 2 2007
-" Version> 0.0.9
+" Last change: August 6 2007
+" Version> 0.1.0
 " Maintainer: Eustáquio 'TaQ' Rangel
 " License: GPL
 " Thanks to: Andy Wokula and Antonio Terceiro for help and patches.
@@ -25,6 +25,29 @@ else
 	let b:rubysnippets_options["module"]	= [" ModuleName","w"]
 	let b:rubysnippets_options["def"]		= [" method_name","w"]
 endif
+
+"
+"	See the Ruby documentation for the word under the cursor.
+"	Based on the tip on http://www.vim.org/tips/tip.php?tip_id=1200
+"
+function! s:RubySnippetsDoc(keyword)
+	" We need a browser here! it gets the value from the g:rubysnippets_browser var
+	" Some possible values we can use (GNU/Linux based):
+	" firefox -new-window
+	" firefox -new-tab
+	" xterm -bg black -fg white -e lynx
+	if !exists("g:rubysnippets_browser")
+		return
+	endif
+	" default URL, thanks James Britt!
+	let url = "http://www.rollyo.com/search.html?sid=10307\&q=".a:keyword
+	" if you want to search elsewhere ...
+	if exists("g:rubysnippets_search_url")
+		let url = g:rubysnippets_search_url
+	endif
+	exec "!".g:rubysnippets_browser." '".url."'"
+endfunction
+map <buffer> <silent> rd :call <SID>RubySnippetsDoc(expand("<cword>"))<cr><cr>
 
 "
 "	Insert a sign on the current file. The sign can be text (>>) if you're
@@ -61,8 +84,11 @@ function! s:RubySnippetsKeepLine(line,expr)
 	let pos	= getpos(".")
 	let pre	= strpart(a:line,0,pos[2])
 	let aft  = strpart(a:line,pos[2])
-	call setline(line("."),pre.a:expr.aft)
-	call feedkeys((strlen(a:expr)-1)."la ","m")
+	let char = nr2char(getchar(1))
+	let inc  = char!=" " ? 1 : -1
+	let move = strlen(a:expr)+inc
+	call setline(line("."),pre.a:expr.char.aft)
+	call feedkeys("\<esc>".move."la".(inc<0?" ":""),"m")
 endfunction
 
 "

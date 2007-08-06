@@ -122,6 +122,12 @@ for the signs. If using GUI, a small ruby icon will be used. The icon
 file is searched on the "pixmaps" directory under the default vim
 configuration directory.
 
+2.10 - Online documentation
+
+You can search for the word below the cursor using, on Normal Mode,
+"rd". The default URL will point to the Ruby documentation on Rollyo,
+maintained by James Britt.
+
 3. Configuration                            *rubysnippets-configuration*
 
 For some structures like def, class and module, automatic names are 
@@ -134,3 +140,18 @@ let g:rubysnippets_skip_names=1
 You can put this command in your $HOME/.vimrc file. If the variable
 is defined, the Insert Mode is kept and you can continue to type your
 code normally, inserting the method, class or module name.
+
+For online documentation searching, you'll need to define what browser
+you'd like to use, on the g:rubysnippets_browser variable. Some samples
+values (GNU/Linux based):
+
+firefox -new-window
+firefox -new-tab
+xterm -bg black -fg white -e lynx
+
+You can set this variable on your .vimrc file like this:
+
+let g:rubysnippets_browser = "firefox -new-window"
+
+If you'd like to search elsewhere, declare the g:rubysnippets_search_url
+to the URL you want. The searched word will be appended on the end.
